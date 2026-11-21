@@ -18,7 +18,7 @@ const PORT = process.env.PORT || 3001;
 
 const CONFIG = {
     SPSE_BASE_URL: 'https://spse.inaproc.id/cianjurkab',
-    ISB_API_KEY: process.env.LKPP_ISB_KEY || '', // Opsional
+    ISB_API_KEY: process.env.LKPP_ISB_KEY || '', // Opsional: kosongkan jika tidak punya API Key ISB LKPP
     AHU_SEARCH_URL: 'https://ahu.go.id/pencarian/profil-pt',
     TARGET_OPD: 'DINAS PEKERJAAN UMUM DAN TATA RUANG'
 };
@@ -110,7 +110,7 @@ async function lookupLegalitasPenyedia(namaPenyedia) {
                     'Content-Type': 'application/x-www-form-urlencoded',
                     'User-Agent': 'Mozilla/5.0 (EWS-Audit-Monitor/1.0)'
                 },
-                timeout: 6000
+                timeout: 8000
             }
         );
 
@@ -141,7 +141,7 @@ async function lookupLegalitasPenyedia(namaPenyedia) {
             return profil;
         }
     } catch (err) {
-        // Fallback diam-diam jika AHU membatasi koneksi dari luar negeri
+        console.warn(`[AHU Lookup] ${namaPenyedia}: ${err.message}`);
     }
 
     return null;
@@ -204,7 +204,6 @@ async function fetchSpseDataTables(endpointPath, jenisMetode) {
 async function crawlSPSECianjur() {
     const rawMap = new Map();
 
-    // 1. Masukkan baseline paket resmi Dinas PUTR
     for (const item of VERIFIED_PUTR_BASELINE) {
         rawMap.set(item.kode, item);
     }
@@ -214,7 +213,7 @@ async function crawlSPSECianjur() {
             const isbRes = await axios.get('https://isb.lkpp.go.id/isb-2/api/satudata/TenderPengumuman', {
                 headers: { 'Authorization': `Bearer ${CONFIG.ISB_API_KEY}` },
                 params: { kd_lpse: 'cianjurkab', tahun: new Date().getFullYear() },
-                timeout: 10000
+                timeout: 12000
             });
 
             const paketPUTR = (isbRes.data || []).filter(item =>
@@ -238,7 +237,6 @@ async function crawlSPSECianjur() {
                 });
             }
         } else {
-            // 2. Tarik langsung JSON DataTables Tender (/dt/lelang) & Non-Tender (/dt/pl)
             const [tenderLive, nonTenderLive] = await Promise.all([
                 fetchSpseDataTables('/dt/lelang', 'Tender - SPSE INAPROC'),
                 fetchSpseDataTables('/dt/pl', 'Pengadaan Langsung (Non-Tender)')
@@ -269,9 +267,9 @@ async function evaluasiPaket(raw) {
     const rasioHpsPagu = raw.pagu > 0 ? (raw.hps / raw.pagu) : 1;
     const legalitas = await lookupLegalitasPenyedia(raw.peserta);
 
-    const isPerubahanHarga = rasioHpsPagu >= 0.997 && raw.pagu >= 100000000;
+    const isPerubahanHarga = rasioHpsPagu >= 0.998 && raw.pagu > 100000000;
     const isPerusahaanBaru = Boolean(legalitas && legalitas.isPerusahaanBaru);
-    const isLimitPL = raw.metode.includes('Pengadaan Langsung') && (raw.hps >= 195000000 || (raw.hps >= 99500000 && raw.hps <= 100000000));
+    const isLimitPL = raw.metode.includes('Pengadaan Langsung') && raw.hps >= 195000000;
     const isIpSama = Boolean(raw.ipSama);
     const isAman = !isPerubahanHarga && !isPerusahaanBaru && !isLimitPL && !isIpSama;
 
@@ -346,7 +344,7 @@ async function evaluasiPaket(raw) {
                 indikator: 'IP Address',
                 status: isIpSama ? 'Terdeteksi' : 'Tidak Terdeteksi',
                 alasan: isIpSama
-                    ? `Terdeteksi kesamaan alamat IP publik tersensor (${raw.ipAddress}) saat pengunggahan dokumen penawaran antar peserta.`
+                    ? `Terdeteksi kesamaan alamat IP publik tersensor (${raw.ipAddress}) saat pengunggahan dokumen penawaran antar peserta (Hipotesa: persekongkolan horizontal / pinjam bendera).`
                     : `Transmisi unggahan dokumen tercatat independen pada IP publik tersensor (${raw.ipAddress}) dan tidak sama dengan peserta lain.`,
                 solusiInspektorat: isIpSama
                     ? 'Wajib klarifikasi fisik direktur penyedia, cek metadata file penawaran, dan dokumentasikan kemandirian kantor/SDM.'
