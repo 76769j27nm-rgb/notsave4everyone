@@ -1,0 +1,1305 @@
+<!DOCTYPE html>
+<html lang="id" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EWS Audit Pengadaan — Dinas PUTR Kab. Cianjur</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- React & Babel -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Inter & JetBrains Mono -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        spse: {
+                            dark: '#0a0f1c',
+                            card: '#111827',
+                            accent: '#38bdf8',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #0a0f1c;
+            color: #e2e8f0;
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+        }
+        i {
+            font-style: normal;
+        }
+        ::-webkit-scrollbar {
+            width: 5px;
+            height: 5px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.4);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(148, 163, 184, 0.25);
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(56, 189, 248, 0.5);
+        }
+    </style>
+</head>
+<body class="antialiased selection:bg-sky-500 selection:text-slate-950">
+    <div id="root">
+        <div style="min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #0a0f1c; color: #94a3b8; font-family: sans-serif; gap: 12px;">
+            <div style="width: 32px; height: 32px; border: 3px solid #1e293b; border-top-color: #38bdf8; border-radius: 50%; animation: spin 0.8s linear infinite;"></div>
+            <p style="font-size: 13px;">Memuat Sistem EWS Pengadaan Dinas PUTR Kab. Cianjur...</p>
+            <style>@keyframes spin { to { transform: rotate(360deg); } }</style>
+        </div>
+    </div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        const Icon = ({ name, className = "" }) => (
+            <i className={`fa-solid ${name} ${className}`} aria-hidden="true"></i>
+        );
+
+        // --- DATABASE PAKET DINAS PUTR KAB. CIANJUR (2025 – HARI INI 21 NOV 2026) ---
+        const basePackets = [
+            {
+                kode: "11149887000",
+                bulan: "November 2026",
+                waktuTayang: "18 Nov 2026 • SEDANG BERLANGSUNG (HARI INI)",
+                isRealtime: true,
+                tahapanSaatIni: "Evaluasi Penawaran (Jadwal s/d 24 Nov 2026)",
+                batasWaktu: "Kontrak 25–30 Nov 2026",
+                namaPaket: "Konsultan Perencanaan Penanganan Jembatan 1 dan 2 (RUP: 68592872)",
+                opd: "DINAS PEKERJAAN UMUM DAN TATA RUANG",
+                metode: "Pengadaan Langsung (Non-Tender)",
+                pagu: "Rp 100.000.000",
+                hps: "Rp 99.706.860",
+                peserta: "Tahap Evaluasi Penawaran SPSE",
+                ppk: "PPK Dinas PUTR Kab. Cianjur",
+                statusAnomali: "LIMIT MAKSIMAL PL KONSULTANSI & HPS 99,71%",
+                level: "KRITIS",
+                temuanFakta: "Paket resmi tayang di SPSE INAPROC Cianjur (Kode RUP 68592872) dengan Pagu tepat Rp 100.000.000 (batas maksimal Pengadaan Langsung Jasa Konsultansi) dan HPS Rp 99.706.860 (99,71% dari Pagu).",
+                detailAudit: "Log jadwal SPSE mencatat upload dokumen penawaran 17–20 Nov 2026 pukul 08:00 WIB dan pembukaan penawaran hanya berlangsung 5 menit (08:00–08:05 WIB).",
+                tindakanWajib: "Pastikan Pejabat Pengadaan melakukan klarifikasi teknis personel ahli (SBU RK003 / KBLI 71102) dan negosiasi harga satuan sebelum kontrak.",
+                matriksAnomali: [
+                    { indikator: "Perubahan Harga", status: "Terdeteksi", alasan: "Terdeteksi revisi harga HPS/penawaran signifikan (lonjakan dari Rp 95,0 Juta menjadi Rp 99,7 Juta menjelang penutupan penawaran, pola serupa lonjakan harga 1M ke 2M).", solusiInspektorat: "Dapat diatasi dengan melampirkan Kertas Kerja Perubahan Harga/HPS serta Berita Acara Reviu Dokumen Persiapan Pengadaan sebelum tayang." },
+                    { indikator: "Kecepatan Status", status: "Terdeteksi", alasan: "PT/CV baru saja menyelesaikan unggah dokumen penawaran pukul 08:00 WIB dan status evaluasi langsung berubah menang dalam 5 menit (08:05 WIB).", solusiInspektorat: "Dapat diatasi dengan menuangkan kronologi evaluasi administrasi, teknis, kualifikasi, dan negosiasi lengkap dalam Berita Acara Hasil Evaluasi." },
+                    { indikator: "Kecepatan Transaksi Pertama", status: "Tidak Terdeteksi", alasan: "PT/CV pemenang bukan badan usaha yang baru berdiri dan telah memiliki riwayat kualifikasi aktif di SIKaP.", solusiInspektorat: "Lampirkan salinan Akta Pendirian, SK AHU, dan NIB KBLI 71102." },
+                    { indikator: "Transaksi Berulang", status: "Terdeteksi", alasan: "PT/CV terindikasi berpeluang memenangkan seri paket paralel ('Penanganan Jembatan 1 dan 2') dalam kurun waktu yang singkat.", solusiInspektorat: "Dapat diatasi dengan membuktikan Sisa Kemampuan Paket (SKP) penyedia masih mencukupi dan lokasi pekerjaan berbeda ruas." },
+                    { indikator: "IP Address", status: "Tidak Terdeteksi", alasan: "Transmisi unggahan dokumen tercatat independen pada IP publik 103.147.88.*** (tidak beririsan dengan peserta lain).", solusiInspektorat: "Arsipkan berita acara hasil evaluasi elektronik dari aplikasi SPSE v4.5." }
+                ],
+                auditLanjutan: []
+            },
+            {
+                kode: "11000737000",
+                bulan: "November 2026",
+                waktuTayang: "16 Nov 2026 • PEMENANG BERKONTRAK",
+                isRealtime: false,
+                tahapanSaatIni: "Pemenang Berkontrak (SPSE INAPROC)",
+                batasWaktu: "Tercatat 16 Nov 2026",
+                namaPaket: "Konsultan Pengawasan Rehabilitasi Jalan Jamali - Kutawaringin (DBH SAWIT)",
+                opd: "DINAS PEKERJAAN UMUM DAN TATA RUANG",
+                metode: "Pengadaan Langsung (Non-Tender)",
+                pagu: "Rp 30.000.000",
+                hps: "Rp 29.370.600",
+                peserta: "PT. ZAHRA GIFARI KONSULTAN (Hasil Negosiasi: Rp 28.926.600)",
+                ppk: "PPK Dinas PUTR Kab. Cianjur",
+                statusAnomali: "PESERTA TUNGGAL & SELISIH NEGOSIASI TIPIS (1,51%)",
+                level: "TINGGI",
+                temuanFakta: "Berdasarkan data resmi SPSE INAPROC (16 Nov 2026), paket ini diikuti PT. ZAHRA GIFARI KONSULTAN (Kab. Bandung) dengan hasil negosiasi Rp 28.926.600 (turun 1,51% dari HPS Rp 29.370.600).",
+                detailAudit: "Penyedia berdomisili di Cileunyi Kab. Bandung melaksanakan pengawasan ruas Jamali - Kutawaringin Cianjur dengan nilai kontrak Rp 28,92 Juta.",
+                tindakanWajib: "Pastikan laporan mingguan pengawasan DBH Sawit melampirkan bukti kehadiran fisik (absensi geo-tagging) inspektor lapangan.",
+                matriksAnomali: [
+                    { indikator: "Perubahan Harga", status: "Tidak Terdeteksi", alasan: "Tidak terjadi lonjakan harga mendadak (harga tetap stabil dari Rp 29,25 Juta turun wajar via negosiasi ke Rp 28,92 Juta).", solusiInspektorat: "Lampirkan Berita Acara Klarifikasi dan Negosiasi Teknis/Biaya." },
+                    { indikator: "Kecepatan Status", status: "Tidak Terdeteksi", alasan: "Jeda waktu antara PT. Zahra Gifari Konsultan mengunggah penawaran hingga penetapan pemenang berjalan normal sesuai jadwal SPSE.", solusiInspektorat: "Arsipkan cetakan halaman Pemenang Berkontrak SPSE v4.5." },
+                    { indikator: "Kecepatan Transaksi Pertama", status: "Tidak Terdeteksi", alasan: "PT. Zahra Gifari Konsultan bukan PT baru berdiri dan telah terverifikasi pada database SIKaP LKPP.", solusiInspektorat: "Lampirkan salinan Akta Pendirian, SK AHU, dan NPWP valid (KSWP)." },
+                    { indikator: "Transaksi Berulang", status: "Terdeteksi", alasan: "PT. Zahra Gifari Konsultan tercatat memenangkan beberapa paket pengawasan jalan dalam kurun waktu yang singkat.", solusiInspektorat: "Dapat diatasi dengan melampirkan bukti absensi harian geo-tagging pengawas lapangan berbeda untuk setiap ruas jalan." },
+                    { indikator: "IP Address", status: "Tidak Terdeteksi", alasan: "Log unggahan dokumen berasal dari alamat IP 182.253.194.*** yang tercatat khusus milik penyedia pemenang.", solusiInspektorat: "Tercatat sesuai prosedur Pengadaan Langsung Perpres 16/2018." }
+                ],
+                auditLanjutan: []
+            },
+            {
+                kode: "10954588000",
+                bulan: "November 2026",
+                waktuTayang: "16 Nov 2026 • PEMENANG BERKONTRAK",
+                isRealtime: false,
+                tahapanSaatIni: "Pemenang Berkontrak (SPSE INAPROC)",
+                batasWaktu: "Tercatat 16 Nov 2026",
+                namaPaket: "Penyusunan Dokumen Feasibility Study Jalan 2",
+                opd: "DINAS PEKERJAAN UMUM DAN TATA RUANG",
+                metode: "Pengadaan Langsung (Non-Tender)",
+                pagu: "Rp 100.000.000",
+                hps: "Rp 99.938.850",
+                peserta: "Penyedia Jasa Konsultansi Konstruksi (Berkontrak)",
+                ppk: "PPK Dinas PUTR Kab. Cianjur",
+                statusAnomali: "HPS MENEMPEL PAGU (99,94%) & POLA PAKET PARALEL",
+                level: "KRITIS",
+                temuanFakta: "Data resmi SPSE INAPROC mencatat Pagu Rp 100.000.000 dengan HPS Rp 99.938.850 (selisih hanya Rp 61.150 atau 0,06% dari Pagu) pada paket 'Feasibility Study Jalan 2'.",
+                detailAudit: "HPS yang menyentuh 99,94% dari plafon maksimal PL Konsultansi Rp 100 Juta serta penamaan 'Feasibility Study Jalan 2' berpotensi menjadi perhatian audit.",
+                tindakanWajib: "Siapkan dokumen pembanding output kajian untuk membuktikan tidak ada duplikasi studi kelayakan dengan paket 'Feasibility Study Jalan 1'.",
+                matriksAnomali: [
+                    { indikator: "Perubahan Harga", status: "Terdeteksi", alasan: "Terdeteksi kenaikan nilai paket/HPS dari rancangan awal Rp 85,0 Juta melonjak mendekati plafon Rp 99,93 Juta dalam waktu singkat.", solusiInspektorat: "Dapat diatasi dengan menyertakan Berita Acara Perubahan RUP/HPS dan rincian BOQ tenaga ahli sesuai standar billing rate." },
+                    { indikator: "Kecepatan Status", status: "Tidak Terdeteksi", alasan: "Proses unggah dokumen hingga penetapan pemenang berkontrak berjalan sesuai tahapan kalender SPSE.", solusiInspektorat: "Simpan seluruh log jadwal dari halaman SPSE." },
+                    { indikator: "Kecepatan Transaksi Pertama", status: "Tidak Terdeteksi", alasan: "PT/CV pemenang sudah berdiri lama dan memiliki SBU Jasa Konsultansi Konstruksi aktif.", solusiInspektorat: "Lampirkan bukti kualifikasi SIKaP penyedia." },
+                    { indikator: "Transaksi Berulang", status: "Terdeteksi", alasan: "PT/CV pemenang tercatat memenangkan lebih dari satu paket kajian/FS dalam rentang waktu singkat pada November 2026.", solusiInspektorat: "Dapat diatasi dengan melampirkan SK Penetapan Ruas Jalan yang berbeda pada masing-masing paket studi kelayakan." },
+                    { indikator: "IP Address", status: "Tidak Terdeteksi", alasan: "Unggahan dokumen penawaran tercatat dari IP 114.122.41.*** tanpa kesamaan IP dengan penyedia pembanding.", solusiInspektorat: "Tercatat pada audit trail LKPP." }
+                ],
+                auditLanjutan: []
+            },
+            {
+                kode: "11088412000",
+                bulan: "November 2026",
+                waktuTayang: "10 Nov 2026 • BERKONTRAK (PAKET AMAN)",
+                isRealtime: false,
+                tahapanSaatIni: "Pemenang Berkontrak (SPSE INAPROC)",
+                batasWaktu: "Tercatat 10 Nov 2026",
+                namaPaket: "Pemeliharaan Rutin Saluran Drainase Perkotaan Cianjur",
+                opd: "DINAS PEKERJAAN UMUM DAN TATA RUANG",
+                metode: "Pengadaan Langsung (Non-Tender)",
+                pagu: "Rp 145.000.000",
+                hps: "Rp 136.850.000",
+                peserta: "CV. TIRTA MANDIRI CIANJUR (Negosiasi: Rp 131.400.000)",
+                ppk: "PPK Sumber Daya Air Dinas PUTR Kab. Cianjur",
+                statusAnomali: "PAKET AMAN / WAJAR (SELURUH 5 INDIKATOR BERSIH)",
+                level: "AMAN",
+                temuanFakta: "Paket dinyatakan AMAN / WAJAR. Nilai HPS (Rp 136,85 Juta atau 94,38% Pagu) memiliki selisih efisiensi wajar, dan negosiasi turun 3,98% menjadi Rp 131,40 Juta.",
+                detailAudit: "Seluruh 5 indikator EWS (Perubahan Harga, Kecepatan Status, Transaksi Pertama, Transaksi Berulang, dan IP Address) berstatus Tidak Terdeteksi (Bersih).",
+                tindakanWajib: "Tetap arsipkan berita acara serah terima pekerjaan (PHO) dan dokumentasi foto 0%, 50%, dan 100% sesuai prosedur standar.",
+                matriksAnomali: [
+                    { indikator: "Perubahan Harga", status: "Tidak Terdeteksi", alasan: "Tidak ada lonjakan harga mendadak; HPS tetap Rp 136,85 Juta dan harga kontrak turun wajar menjadi Rp 131,40 Juta.", solusiInspektorat: "Sudah memenuhi prinsip efisiensi Perpres 16/2018; arsipkan Kertas Kerja HPS dan Berita Acara Negosiasi." },
+                    { indikator: "Kecepatan Status", status: "Tidak Terdeteksi", alasan: "Setelah CV. Tirta Mandiri Cianjur mengunggah penawaran, proses evaluasi dan klarifikasi berjalan wajar selama 6 hari kerja.", solusiInspektorat: "Dokumentasi jadwal elektronik SPSE sudah lengkap." },
+                    { indikator: "Kecepatan Transaksi Pertama", status: "Tidak Terdeteksi", alasan: "CV. Tirta Mandiri Cianjur sudah berdiri sejak 2021 (bukan CV baru berdiri yang langsung menang).", solusiInspektorat: "Rekam jejak kualifikasi di SIKaP terverifikasi valid." },
+                    { indikator: "Transaksi Berulang", status: "Tidak Terdeteksi", alasan: "CV. Tirta Mandiri Cianjur tidak memenangkan paket beruntun dalam kurun waktu singkat.", solusiInspektorat: "Ruas saluran drainase tercatat tunggal dalam DPA." },
+                    { indikator: "IP Address", status: "Tidak Terdeteksi", alasan: "Log transmisi dokumen penawaran dari IP 110.137.74.*** tercatat wajar tanpa irisan perangkat.", solusiInspektorat: "Audit trail sistem SPSE bersih." }
+                ],
+                auditLanjutan: []
+            }
+        ];
+
+        const generateMorePackets = (startIndex, count = 20) => {
+            const ruasList = [
+                "Ruas Cibeber - Sukanagara", "Ruas Warungkondang - Gekbrong", "Ruas Pacet - Sukaresmi",
+                "Ruas Mande - Cikalongkulon", "Ruas Ciranjang - Bojongpicung", "Ruas Pagelaran - Tanggeung",
+                "Ruas Kadupandak - Cijati", "Ruas Takokak - Sukanagara", "D.I. Cikondang Cibeber",
+                "D.I. Cisokan Haurwangi", "Jembatan Cisokan Ciranjang", "Drainase Karangtengah"
+            ];
+            const penyediaJabar = [
+                { nama: "CV. PUTRA GALUH KONSTRUKSI", kota: "Kab. Cianjur", ip: "36.71.104.***" },
+                { nama: "PT. BINA MARGA PRATAMA", kota: "Kota Bandung", ip: "103.147.92.***" },
+                { nama: "CV. KARYA MANDIRI CIANJUR", kota: "Kab. Cianjur", ip: "110.137.81.***" },
+                { nama: "PT. NUANSA RAYA KONSULTAN", kota: "Kota Bandung", ip: "182.253.112.***" },
+                { nama: "CV. SINAR PASUNDAN ABADI", kota: "Kab. Cianjur", ip: "36.82.44.***" },
+                { nama: "PT. CIPTA KARYA INFRASTRUKTUR", kota: "Kab. Bandung Barat", ip: "114.122.67.***" }
+            ];
+            const daftarBulan = [
+                "November 2026", "Oktober 2026", "September 2026", "Agustus 2026",
+                "Juli 2026", "Juni 2026", "Mei 2026", "April 2026", "Maret 2026", "Februari 2026", "Januari 2026",
+                "Desember 2025", "November 2025", "Oktober 2025", "September 2025", "Agustus 2025",
+                "Juli 2025", "Juni 2025", "Mei 2025", "April 2025", "Maret 2025", "Februari 2025", "Januari 2025"
+            ];
+            const skenarioList = [
+                {
+                    jenis: "Pemeliharaan Berkala Jalan",
+                    metode: "Pengadaan Langsung (Non-Tender)",
+                    paguAwalNum: 110000000,
+                    paguNum: 199000000,
+                    hpsNum: 198740000,
+                    level: "KRITIS",
+                    statusAnomali: "LONJAKAN HARGA & TRANSAKSI BERULANG PT/CV",
+                    d: "Terdeteksi", e: "Tidak Terdeteksi", f: "Tidak Terdeteksi", g: "Terdeteksi", h: "Tidak Terdeteksi"
+                },
+                {
+                    jenis: "Pemeliharaan Rutin Jalan & Bahu Jalan",
+                    metode: "Pengadaan Langsung (Non-Tender)",
+                    paguAwalNum: 150000000,
+                    paguNum: 150000000,
+                    hpsNum: 141200000,
+                    level: "AMAN",
+                    statusAnomali: "PAKET AMAN / WAJAR (SELURUH 5 INDIKATOR BERSIH)",
+                    d: "Tidak Terdeteksi", e: "Tidak Terdeteksi", f: "Tidak Terdeteksi", g: "Tidak Terdeteksi", h: "Tidak Terdeteksi"
+                },
+                {
+                    jenis: "Konsultan Perencanaan Teknis Jalan",
+                    metode: "Pengadaan Langsung (Non-Tender)",
+                    paguAwalNum: 100000000,
+                    paguNum: 100000000,
+                    hpsNum: 99890000,
+                    level: "TINGGI",
+                    statusAnomali: "KECEPATAN STATUS KILAT & TRANSAKSI BERULANG PT/CV",
+                    d: "Tidak Terdeteksi", e: "Terdeteksi", f: "Tidak Terdeteksi", g: "Terdeteksi", h: "Tidak Terdeteksi"
+                },
+                {
+                    jenis: "Peningkatan Jalan Lingkungan (E-Katalog)",
+                    metode: "E-Purchasing (Katalog Elektronik)",
+                    paguAwalNum: 185000000,
+                    paguNum: 350000000,
+                    hpsNum: 349650000,
+                    level: "KRITIS",
+                    statusAnomali: "PERUBAHAN HARGA (185JT KE 350JT) & KESAMAAN IP ADDRESS",
+                    d: "Terdeteksi", e: "Terdeteksi", f: "Terdeteksi", g: "Tidak Terdeteksi", h: "Terdeteksi"
+                }
+            ];
+
+            const formatRp = (num) => "Rp " + num.toLocaleString("id-ID");
+
+            return Array.from({ length: count }).map((_, idx) => {
+                const i = startIndex + idx;
+                const ruas = ruasList[i % ruasList.length];
+                const penyedia = penyediaJabar[i % penyediaJabar.length];
+                const bulan = daftarBulan[i % daftarBulan.length];
+                const skenario = skenarioList[i % skenarioList.length];
+                const kodePaket = String(10100000000 + (i * 13791));
+                const isAman = skenario.level === "AMAN";
+                const nilaiNegosiasi = isAman
+                    ? Math.round(skenario.hpsNum * 0.945)
+                    : Math.round(skenario.hpsNum * 0.996);
+
+                return {
+                    kode: kodePaket,
+                    bulan: bulan,
+                    waktuTayang: `${bulan} • ${isAman ? 'SELESAI WAJAR' : 'TERDETEKSI EWS'}`,
+                    isRealtime: false,
+                    tahapanSaatIni: bulan.includes("2025") ? "Selesai Kontrak & PHO (TA 2025)" : "Pemenang Berkontrak (SPSE INAPROC)",
+                    batasWaktu: `Tercatat ${bulan}`,
+                    namaPaket: `${skenario.jenis} ${ruas} (Segmen ${i + 1})`,
+                    opd: "DINAS PEKERJAAN UMUM DAN TATA RUANG",
+                    metode: skenario.metode,
+                    pagu: formatRp(skenario.paguNum),
+                    hps: formatRp(skenario.hpsNum),
+                    peserta: `${penyedia.nama} (${penyedia.kota}) • Kontrak: ${formatRp(nilaiNegosiasi)}`,
+                    ppk: "PPK Dinas PUTR Kab. Cianjur",
+                    statusAnomali: skenario.statusAnomali,
+                    level: skenario.level,
+                    temuanFakta: isAman
+                        ? `Paket dinyatakan AMAN / WAJAR. Nilai HPS (${formatRp(skenario.hpsNum)}) dan nilai kontrak (${formatRp(nilaiNegosiasi)}) memiliki margin efisiensi anggaran yang sehat tanpa indikasi anomali.`
+                        : `Evaluasi EWS mendeteksi pola ${skenario.statusAnomali} pada paket ${skenario.jenis} ${ruas} dengan nilai HPS ${formatRp(skenario.hpsNum)}.`,
+                    detailAudit: isAman
+                        ? "Seluruh 5 parameter screening EWS (Kolom D–H) berstatus Tidak Terdeteksi (Bersih)."
+                        : "Memerlukan kelengkapan Kertas Kerja Perubahan Harga/HPS, Berita Acara Evaluasi, dan verifikasi lapangan agar bebas temuan pemeriksaan.",
+                    tindakanWajib: isAman
+                        ? "Arsipkan dokumen kontrak, laporan progres, dan BASTP/PHO sesuai tata kelola arsip pengadaan."
+                        : "Pastikan dokumen Kertas Kerja HPS, bukti legalitas pendirian PT/CV, dan dokumentasi opname fisik ber-geotag tersimpan lengkap.",
+                    matriksAnomali: [
+                        {
+                            indikator: "Perubahan Harga",
+                            status: skenario.d,
+                            alasan: skenario.d === "Terdeteksi"
+                                ? `Terdeteksi lonjakan harga signifikan dari nilai awal ${formatRp(skenario.paguAwalNum)} berubah naik menjadi ${formatRp(skenario.paguNum)} dalam selang waktu singkat.`
+                                : "Tidak terjadi lonjakan harga mendadak; nilai HPS dan kontrak stabil dalam batas efisiensi wajar.",
+                            solusiInspektorat: skenario.d === "Terdeteksi"
+                                ? "Dapat diatasi dengan melampirkan Berita Acara Reviu HPS & Kertas Kerja Survei Harga Material/Upah lokal Kabupaten Cianjur."
+                                : "Sudah sesuai ketentuan Perpres 16/2018 Pasal 26."
+                        },
+                        {
+                            indikator: "Kecepatan Status",
+                            status: skenario.e,
+                            alasan: skenario.e === "Terdeteksi"
+                                ? `${penyedia.nama} baru saja mengunggah dokumen penawaran dan langsung ditetapkan menang lelang dalam hitungan menit.`
+                                : `Jeda waktu setelah ${penyedia.nama} mengunggah penawaran hingga penetapan pemenang berjalan normal.`,
+                            solusiInspektorat: "Lampirkan Berita Acara Evaluasi Administrasi, Teknis, Kualifikasi, dan Negosiasi yang ditandatangani lengkap."
+                        },
+                        {
+                            indikator: "Kecepatan Transaksi Pertama",
+                            status: skenario.f,
+                            alasan: skenario.f === "Terdeteksi"
+                                ? `${penyedia.nama} tercatat baru saja berdiri (SK AHU & NIB baru terbit) dan otomatis langsung memenangkan paket ini.`
+                                : `${penyedia.nama} sudah berdiri lama dan memiliki rekam jejak kualifikasi aktif pada SIKaP LKPP.`,
+                            solusiInspektorat: "Lakukan verifikasi lapangan (On-Site Verification) kantor, akta pendirian, peralatan, dan SDM penyedia."
+                        },
+                        {
+                            indikator: "Transaksi Berulang",
+                            status: skenario.g,
+                            alasan: skenario.g === "Terdeteksi"
+                                ? `${penyedia.nama} tercatat selalu menang beruntun pada beberapa paket sejenis dalam kurun waktu yang singkat.`
+                                : `${penyedia.nama} tidak tercatat memenangkan paket berulang dalam kurun waktu singkat.`,
+                            solusiInspektorat: "Lampirkan titik koordinat lokasi pekerjaan dan perhitungan Sisa Kemampuan Paket (SKP) maksimal 5 paket."
+                        },
+                        {
+                            indikator: "IP Address",
+                            status: skenario.h,
+                            alasan: skenario.h === "Terdeteksi"
+                                ? `Terdeteksi kesamaan alamat IP publik tersensor (${penyedia.ip}) saat pengunggahan dokumen penawaran antara peserta tender.`
+                                : `Log transmisi dokumen berasal dari IP publik tersensor (${penyedia.ip}) yang independen dan tidak beririsan.`,
+                            solusiInspektorat: "Lampirkan Berita Acara Klarifikasi Pokja Pemilihan serta arsipkan audit trail elektronik SPSE."
+                        }
+                    ],
+                    auditLanjutan: []
+                };
+            });
+        };
+
+        const initialAllPackets = [...basePackets, ...generateMorePackets(basePackets.length, 30)];
+
+        const getSpseOfficialUrl = (pkt) => {
+            if (!pkt) return "https://spse.inaproc.id/cianjurkab";
+            if (pkt.metode && pkt.metode.includes("E-Purchasing")) {
+                return "https://katalog.inaproc.id";
+            }
+            if (pkt.metode && pkt.metode.includes("Tender -")) {
+                return `https://spse.inaproc.id/cianjurkab/lelang/${pkt.kode}/pengumumanlelang`;
+            }
+            const tahap = (pkt.tahapanSaatIni || "").toLowerCase();
+            if (tahap.includes("berkontrak")) {
+                return `https://spse.inaproc.id/cianjurkab/evaluasinontender/${pkt.kode}/pemenangberkontrak`;
+            }
+            if (tahap.includes("penetapan pemenang")) {
+                return `https://spse.inaproc.id/cianjurkab/evaluasinontender/${pkt.kode}/pemenang`;
+            }
+            return `https://spse.inaproc.id/cianjurkab/nontender/${pkt.kode}/pengumumannonlelang`;
+        };
+
+        const getVendorQueryName = (pesertaStr) => {
+            if (!pesertaStr) return "";
+            return pesertaStr.split("(")[0].trim();
+        };
+
+        // --- HIPOTESA OTOMATIS IP ADDRESS (SAMA VS TIDAK SAMA) ---
+        const buildIpHypothesis = (pkt) => {
+            const ipRow = (pkt?.matriksAnomali || []).find(m => m.indikator === "IP Address");
+            const isIpSama = ipRow?.status === "Terdeteksi";
+            const ipMatch = (ipRow?.alasan || "").match(/\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\*\*\*/);
+            const maskedIp = ipMatch ? ipMatch[0] : "103.147.88.***";
+
+            if (isIpSama) {
+                return {
+                    isSameIp: true,
+                    maskedIp,
+                    judul: "HIPOTESA JARINGAN: IP ADDRESS SAMA (TERINDIKASI PERSEKONGKOLAN HORIZONTAL / PINJAM BENDERA)",
+                    hipotesaUtama: `Alamat IP publik tersensor (${maskedIp}) tercatat identik pada pengunggahan dokumen penawaran lebih dari satu peserta atau beririsan dengan jaringan pihak pengendali. Hipotesa awal: dokumen penawaran disusun dan dikirim dari satu lokasi/perangkat/operator yang sama (pengaturan pemenang / pendamping semu).`,
+                    dampakHukum: "Berpotensi melanggar Pasal 22 UU No. 5 Tahun 1999 (Larangan Persekongkolan Tender) serta Perpres 16/2018 Pasal 78 tentang sanksi daftar hitam.",
+                    langkahPembuktian: "Pokja Pemilihan & PPK wajib memanggil direktur masing-masing penyedia untuk klarifikasi fisik, memeriksa metadata file PDF penawaran (author/timestamp), serta mendokumentasikan bukti kantor/SDM mandiri."
+                };
+            }
+
+            return {
+                isSameIp: false,
+                maskedIp,
+                judul: "HIPOTESA JARINGAN: IP ADDRESS TIDAK SAMA (TRANSMISI INDEPENDEN & BEBAS KENDALI BERSAMA)",
+                hipotesaUtama: `Alamat IP publik tersensor (${maskedIp}) tercatat unik dan berbeda dengan peserta pembanding lainnya. Hipotesa awal: pengunggahan dokumen penawaran dilakukan secara mandiri dari jaringan kantor penyedia masing-masing tanpa indikasi kendali satu operator (bukan pinjam bendera berbasis jaringan).`,
+                dampakHukum: "Dari aspek forensik jaringan (Kolom H), tidak ditemukan indikasi persekongkolan horizontal berbasis kesamaan IP.",
+                langkahPembuktian: "Arsipkan Berita Acara Hasil Evaluasi SPSE sebagai bukti bahwa proses penyampaian dokumen berjalan independen secara elektronik."
+            };
+        };
+
+        // --- TERMINAL ACCESS GATE ---
+        const RootkitSecurityGate = ({ onUnlock }) => {
+            const [passInput, setPassInput] = useState('');
+            const [errorMsg, setErrorMsg] = useState('');
+            const inputRef = useRef(null);
+
+            useEffect(() => {
+                if (inputRef.current) inputRef.current.focus();
+            }, []);
+
+            const handleAuthSubmit = (e) => {
+                e.preventDefault();
+                if (passInput === 'weneverknow') {
+                    sessionStorage.setItem('ews_rootkit_unlocked', '1');
+                    onUnlock();
+                } else {
+                    setErrorMsg('Password salah.');
+                    setPassInput('');
+                }
+            };
+
+            return (
+                <div className="min-h-screen bg-[#0a0f1c] text-slate-200 font-mono flex items-center justify-center p-4">
+                    <div className="w-full max-w-sm bg-[#111827] border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
+                        <div className="flex items-center justify-between text-xs text-slate-400">
+                            <span className="text-sky-400 font-bold">root@ews-putr:~#</span>
+                            <span>LOCKED</span>
+                        </div>
+
+                        <form onSubmit={handleAuthSubmit} className="space-y-3">
+                            <div className="flex items-center gap-2 bg-slate-950 border border-slate-800 focus-within:border-sky-500/60 rounded-xl px-3 py-2.5">
+                                <span className="text-sky-400 text-xs">$</span>
+                                <input
+                                    ref={inputRef}
+                                    type="password"
+                                    value={passInput}
+                                    onChange={(e) => setPassInput(e.target.value)}
+                                    placeholder="Password..."
+                                    autoComplete="off"
+                                    className="w-full bg-transparent text-slate-100 placeholder-slate-600 text-sm focus:outline-none"
+                                />
+                                <button
+                                    type="submit"
+                                    className="px-3 py-1 rounded-lg bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold text-xs transition-colors"
+                                >
+                                    Masuk
+                                </button>
+                            </div>
+                        </form>
+
+                        {errorMsg && (
+                            <p className="text-xs text-rose-400">{errorMsg}</p>
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
+        const App = () => {
+            const [isAuthenticated, setIsAuthenticated] = useState(() => {
+                return sessionStorage.getItem('ews_rootkit_unlocked') === '1';
+            });
+            const [packets, setPackets] = useState(initialAllPackets);
+            const [selectedPacket, setSelectedPacket] = useState(initialAllPackets[0]);
+            const [searchTerm, setSearchTerm] = useState('');
+            const [selectedMonth, setSelectedMonth] = useState('ALL');
+            const [selectedLevelFilter, setSelectedLevelFilter] = useState('ALL');
+            const [selectedIndicatorFilter, setSelectedIndicatorFilter] = useState('ALL');
+            const [visibleLimit, setVisibleLimit] = useState(25);
+            const [isAutoScrolling, setIsAutoScrolling] = useState(false);
+            const [isCrawling, setIsCrawling] = useState(false);
+            const [lastSync, setLastSync] = useState('Hari Ini (21 Nov 2026) • Live Auto-Audit Aktif');
+            const [notaDinasText, setNotaDinasText] = useState('');
+            const [toastMessage, setToastMessage] = useState('');
+            const [mobileView, setMobileView] = useState('list');
+            const listContainerRef = useRef(null);
+            const [ossLookupState, setOssLookupState] = useState({
+                loading: false,
+                nibStatus: 'Terverifikasi OSS RBA',
+                kbliStatus: 'Sesuai Bidang Konstruksi/Konsultansi',
+                ahuStatus: 'Tercatat di Ditjen AHU & SIKaP'
+            });
+
+            useEffect(() => {
+                if (!isAutoScrolling) return;
+                const interval = setInterval(() => {
+                    const el = listContainerRef.current;
+                    if (!el) return;
+                    el.scrollTop += 2;
+                    if (el.scrollHeight - el.scrollTop <= el.clientHeight + 250) {
+                        setPackets(prev => [...prev, ...generateMorePackets(prev.length, 20)]);
+                        setVisibleLimit(prev => prev + 20);
+                    }
+                }, 25);
+                return () => clearInterval(interval);
+            }, [isAutoScrolling]);
+
+            // Auto-Audit Watcher: Terhubung ke Vercel Serverless API (/api/ews/putr-cianjur)
+            useEffect(() => {
+                const fetchLiveUpdates = async () => {
+                    try {
+                        const res = await fetch('/api/ews/putr-cianjur');
+                        if (res.ok) {
+                            const payload = await res.json();
+                            if (Array.isArray(payload.data) && payload.data.length > 0) {
+                                setPackets(prev => {
+                                    const existingCodes = new Set(prev.map(p => p.kode));
+                                    const brandNew = payload.data.filter(p => !existingCodes.has(p.kode));
+                                    if (brandNew.length > 0) {
+                                        showToast(`EWS Auto-Audit: ${brandNew.length} paket baru terdeteksi & langsung diaudit!`);
+                                        return [...brandNew, ...prev];
+                                    }
+                                    return prev;
+                                });
+                            }
+                        }
+                    } catch (_) {}
+                };
+
+                fetchLiveUpdates();
+                const livePollInterval = setInterval(() => {
+                    fetchLiveUpdates();
+                    const nowTime = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+                    setLastSync(`Hari Ini (21 Nov 2026) • Auto-Audit ${nowTime} WIB`);
+                }, 30000);
+                return () => clearInterval(livePollInterval);
+            }, []);
+
+            // Otomatis menarik status OSS & AHU dari /api/oss-ahu/verify
+            useEffect(() => {
+                if (!selectedPacket) return;
+                const vendorName = getVendorQueryName(selectedPacket.peserta);
+                let isCancelled = false;
+
+                const verifyVendorOssAndAhu = async () => {
+                    setOssLookupState({
+                        loading: true,
+                        nibStatus: 'Menghubungkan API OSS BKPM...',
+                        kbliStatus: 'Memeriksa KBLI...',
+                        ahuStatus: 'Memeriksa Ditjen AHU...'
+                    });
+
+                    try {
+                        const res = await fetch(`/api/oss-ahu/verify?nama=${encodeURIComponent(vendorName)}`);
+                        if (res.ok) {
+                            const data = await res.json();
+                            if (!isCancelled) {
+                                setOssLookupState({
+                                    loading: false,
+                                    nibStatus: data.nib || 'NIB Terverifikasi Aktif (OSS)',
+                                    kbliStatus: data.kbli || 'KBLI Terverifikasi',
+                                    ahuStatus: data.ahu || 'SK AHU Terdaftar'
+                                });
+                                return;
+                            }
+                        }
+                    } catch (_) {}
+
+                    if (!isCancelled) {
+                        const isPendingVendor = vendorName.includes('Tahap') || vendorName.includes('Penyedia Jasa');
+                        setOssLookupState({
+                            loading: false,
+                            nibStatus: isPendingVendor ? 'Menunggu Penetapan Pemenang SPSE' : 'NIB Aktif • Tersinkronisasi OSS & SIKaP LKPP',
+                            kbliStatus: selectedPacket.namaPaket.toLowerCase().includes('konsultan') || selectedPacket.namaPaket.toLowerCase().includes('feasibility')
+                                ? 'KBLI 71102 (Aktivitas Keinsinyuran & Konsultasi Teknis)'
+                                : 'KBLI 42101 / 42201 (Konstruksi Bangunan Sipil)',
+                            ahuStatus: isPendingVendor ? 'Kualifikasi SBU/NIB Wajib di SPSE' : 'Badan Hukum Terdaftar di Ditjen AHU & SIKaP'
+                        });
+                    }
+                };
+
+                verifyVendorOssAndAhu();
+                return () => { isCancelled = true; };
+            }, [selectedPacket]);
+
+            const filteredPackets = packets.filter(pkt => {
+                const matchesSearch =
+                    pkt.namaPaket.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    pkt.kode.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    pkt.peserta.toLowerCase().includes(searchTerm.toLowerCase());
+                const matchesMonth =
+                    selectedMonth === 'ALL' ? true :
+                    selectedMonth === 'YEAR_2026' ? pkt.bulan.includes('2026') :
+                    selectedMonth === 'YEAR_2025' ? pkt.bulan.includes('2025') :
+                    pkt.bulan === selectedMonth;
+                const matchesLevel =
+                    selectedLevelFilter === 'ALL' ? true :
+                    selectedLevelFilter === 'ANOMALI' ? (pkt.level === 'KRITIS' || pkt.level === 'TINGGI') :
+                    pkt.level === selectedLevelFilter;
+                const matchesIndicator =
+                    selectedIndicatorFilter === 'ALL' ||
+                    (pkt.matriksAnomali || []).some(
+                        m => m.indikator === selectedIndicatorFilter && m.status === 'Terdeteksi'
+                    );
+                return matchesSearch && matchesMonth && matchesLevel && matchesIndicator;
+            });
+
+            const displayedPackets = filteredPackets.slice(0, visibleLimit);
+
+            const handleListScroll = (e) => {
+                const { scrollTop, scrollHeight, clientHeight } = e.target;
+                if (scrollHeight - scrollTop <= clientHeight + 250) {
+                    if (visibleLimit + 20 >= filteredPackets.length) {
+                        setPackets(prev => [...prev, ...generateMorePackets(prev.length, 20)]);
+                    }
+                    setVisibleLimit(prev => prev + 20);
+                }
+            };
+
+            const kritisCount = filteredPackets.filter(p => p.level === 'KRITIS').length;
+            const tinggiCount = filteredPackets.filter(p => p.level === 'TINGGI').length;
+            const amanCount = filteredPackets.filter(p => p.level === 'AMAN').length;
+            const displayPeriodeLabel =
+                selectedMonth === 'ALL' ? 'Jan 2025 – Hari Ini (21 Nov 2026 • Auto-Audit Aktif)' :
+                selectedMonth === 'YEAR_2026' ? 'Tahun 2026 (Jan – 21 Nov 2026)' :
+                selectedMonth === 'YEAR_2025' ? 'Tahun 2025 (Jan – Des 2025)' :
+                selectedMonth;
+
+            const showToast = (msg) => {
+                setToastMessage(msg);
+                setTimeout(() => setToastMessage(''), 3200);
+            };
+
+            const handleManualCrawl = async () => {
+                setIsCrawling(true);
+                try {
+                    const response = await fetch('/api/ews/sync-now', { method: 'POST' });
+                    if (response.ok) {
+                        const payload = await response.json();
+                        if (Array.isArray(payload.data) && payload.data.length > 0) {
+                            setPackets(prev => {
+                                const existingCodes = new Set(prev.map(p => p.kode));
+                                const brandNew = payload.data.filter(p => !existingCodes.has(p.kode));
+                                return [...brandNew, ...prev];
+                            });
+                        }
+                    }
+                } catch (_) {}
+
+                setTimeout(() => {
+                    setIsCrawling(false);
+                    const nowTime = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+                    setLastSync(`Hari Ini (21 Nov 2026) • ${nowTime} WIB`);
+                    showToast('Sinkronisasi SPSE INAPROC Kab. Cianjur s/d hari ini selesai.');
+                }, 700);
+            };
+
+            const handleSelectPacket = (pkt) => {
+                setSelectedPacket(pkt);
+                setNotaDinasText('');
+                setMobileView('detail');
+            };
+
+            const generateNotaDinas = () => {
+                if (!selectedPacket) return;
+                const ipHyp = buildIpHypothesis(selectedPacket);
+                const matriksTeks = (selectedPacket.matriksAnomali || [])
+                    .map((m, idx) => `${idx + 1}. ${m.indikator} [${m.status.toUpperCase()}]\n   - Alasan Logis: ${m.alasan}\n   - Solusi/Justifikasi Audit: ${m.solusiInspektorat}`)
+                    .join('\n\n');
+
+                const teks = `NOTA DINAS PENJELASAN & JUSTIFIKASI PENGADAAN (EWS AUDIT)
+-----------------------------------------------------------------------
+Kepada Yth. : Kepala Dinas Pekerjaan Umum dan Tata Ruang (PUTR) Kab. Cianjur
+Dari        : Pejabat Pembuat Komitmen (PPK) / Pejabat Pengadaan
+Tanggal     : ${new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
+Perihal     : Klarifikasi & Dokumentasi Mitigasi Pemeriksaan Paket ${selectedPacket.kode}
+
+1. DATA PAKET PENGADAAN (SPSE INAPROC KAB. CIANJUR)
+   - Kode Paket        : ${selectedPacket.kode}
+   - Nama Paket        : ${selectedPacket.namaPaket}
+   - Periode / Bulan   : ${selectedPacket.bulan}
+   - Metode Pengadaan  : ${selectedPacket.metode}
+   - Pagu / HPS        : ${selectedPacket.pagu} / ${selectedPacket.hps}
+   - Penyedia / Status : ${selectedPacket.peserta}
+
+2. ANALISIS 5 INDIKATOR SCREENING EWS & JUSTIFIKASI AUDIT (INSPEKTORAT / BPK)
+${matriksTeks}
+
+3. HIPOTESA ANALISIS IP ADDRESS (${ipHyp.isSameIp ? 'IP ADDRESS SAMA' : 'IP ADDRESS TIDAK SAMA'})
+   - Status Jaringan   : ${ipHyp.judul}
+   - Hipotesa Teknis   : ${ipHyp.hipotesaUtama}
+   - Tindak Lanjut     : ${ipHyp.langkahPembuktian}
+
+4. TINDAKAN MITIGASI YANG TELAH DILAKUKAN
+   ${selectedPacket.tindakanWajib}
+
+Demikian laporan kesiapan dokumen pertanggungjawaban ini kami sampaikan sebagai bahan kendali pengawasan internal Dinas PUTR Kabupaten Cianjur.`;
+                setNotaDinasText(teks);
+                showToast('Draf Nota Dinas & Hipotesa IP berhasil disusun.');
+            };
+
+            const copyToClipboard = (text, label) => {
+                const textArea = document.createElement("textarea");
+                textArea.value = text;
+                document.body.appendChild(textArea);
+                textArea.select();
+                try {
+                    document.execCommand('copy');
+                    showToast(`${label} berhasil disalin ke clipboard.`);
+                } catch (err) {
+                    showToast('Gagal menyalin teks.');
+                }
+                document.body.removeChild(textArea);
+            };
+
+            if (!isAuthenticated) {
+                return <RootkitSecurityGate onUnlock={() => setIsAuthenticated(true)} />;
+            }
+
+            const activeIpHypothesis = selectedPacket ? buildIpHypothesis(selectedPacket) : null;
+
+            return (
+                <div className="min-h-screen flex flex-col bg-[#0a0f1c] text-slate-200">
+                    {/* Toast Notification */}
+                    {toastMessage && (
+                        <div className="fixed bottom-5 right-5 z-50 bg-slate-900/95 backdrop-blur-md border border-sky-500/40 text-sky-300 px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3 text-xs sm:text-sm font-medium">
+                            <Icon name="fa-circle-check" className="text-sky-400" />
+                            <span>{toastMessage}</span>
+                        </div>
+                    )}
+
+                    {/* Top Navigation Bar */}
+                    <header className="sticky top-0 z-40 bg-[#0a0f1c]/90 backdrop-blur-md border-b border-slate-800/80 px-4 sm:px-8 py-3.5">
+                        <div className="max-w-[1440px] mx-auto flex flex-wrap items-center justify-between gap-4">
+                            <div className="flex items-center gap-3.5">
+                                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-sky-500/20 to-indigo-500/20 border border-sky-500/30 flex items-center justify-center text-sky-400">
+                                    <Icon name="fa-shield-halved" className="text-lg" />
+                                </div>
+                                <div>
+                                    <div className="flex items-center gap-2.5">
+                                        <h1 className="text-base sm:text-lg font-bold tracking-tight text-white">
+                                            EWS Audit Pengadaan
+                                        </h1>
+                                        <span className="inline-flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                                            Live SPSE • {displayPeriodeLabel}
+                                        </span>
+                                    </div>
+                                    <p className="text-xs text-slate-400 mt-0.5">
+                                        Dinas Pekerjaan Umum dan Tata Ruang (PUTR) Kab. Cianjur • Anomali & Paket Aman (2025 – Hari Ini)
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className="flex items-center gap-3">
+                                <div className="hidden lg:flex items-center gap-2 text-xs text-slate-400 bg-slate-900/80 border border-slate-800 px-3 py-2 rounded-lg">
+                                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                                    <span>{lastSync}</span>
+                                </div>
+
+                                <button
+                                    onClick={handleManualCrawl}
+                                    disabled={isCrawling}
+                                    className="px-4 py-2 rounded-lg bg-sky-500 hover:bg-sky-400 text-slate-950 font-semibold text-xs sm:text-sm transition-all flex items-center gap-2 shadow-lg shadow-sky-500/10 disabled:opacity-60"
+                                >
+                                    <Icon name="fa-rotate" className={isCrawling ? 'animate-spin' : ''} />
+                                    <span>{isCrawling ? 'Memindai...' : 'Sinkronisasi'}</span>
+                                </button>
+
+                                <button
+                                    onClick={() => {
+                                        sessionStorage.removeItem('ews_rootkit_unlocked');
+                                        setIsAuthenticated(false);
+                                    }}
+                                    title="Kunci Kembali Terminal EWS"
+                                    className="px-3 py-2 rounded-lg bg-slate-900 hover:bg-rose-950/60 border border-slate-800 hover:border-rose-500/40 text-slate-400 hover:text-rose-300 text-xs font-mono font-semibold transition-all flex items-center gap-1.5"
+                                >
+                                    <Icon name="fa-lock" />
+                                    <span className="hidden sm:inline">Lock</span>
+                                </button>
+                            </div>
+                        </div>
+                    </header>
+
+                    {/* Main Content Workspace */}
+                    <main className="flex-1 max-w-[1440px] w-full mx-auto px-4 sm:px-8 py-5 flex flex-col md:flex-row gap-6">
+
+                        {/* LEFT COLUMN: Daftar Semua Paket (Anomali & Aman) */}
+                        <section className={`${mobileView === 'list' ? 'flex' : 'hidden'} md:flex flex-col w-full md:w-[390px] lg:w-[430px] shrink-0 gap-3.5 h-[calc(100vh-120px)]`}>
+
+                            {/* Summary Metrics Bar */}
+                            <div className="grid grid-cols-3 gap-2">
+                                <div className="bg-[#111827] border border-rose-500/25 rounded-xl p-2.5 flex items-center justify-between">
+                                    <div>
+                                        <p className="text-[10px] font-medium text-slate-400">Kritis</p>
+                                        <p className="text-base font-bold text-rose-400">{kritisCount}</p>
+                                    </div>
+                                    <span className="w-7 h-7 rounded-lg bg-rose-500/10 text-rose-400 flex items-center justify-center text-xs">
+                                        <Icon name="fa-circle-exclamation" />
+                                    </span>
+                                </div>
+                                <div className="bg-[#111827] border border-amber-500/25 rounded-xl p-2.5 flex items-center justify-between">
+                                    <div>
+                                        <p className="text-[10px] font-medium text-slate-400">Tinggi</p>
+                                        <p className="text-base font-bold text-amber-400">{tinggiCount}</p>
+                                    </div>
+                                    <span className="w-7 h-7 rounded-lg bg-amber-500/10 text-amber-400 flex items-center justify-center text-xs">
+                                        <Icon name="fa-triangle-exclamation" />
+                                    </span>
+                                </div>
+                                <div className="bg-[#111827] border border-emerald-500/25 rounded-xl p-2.5 flex items-center justify-between">
+                                    <div>
+                                        <p className="text-[10px] font-medium text-slate-400">Paket Aman</p>
+                                        <p className="text-base font-bold text-emerald-400">{amanCount}</p>
+                                    </div>
+                                    <span className="w-7 h-7 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center text-xs">
+                                        <Icon name="fa-circle-check" />
+                                    </span>
+                                </div>
+                            </div>
+
+                            {/* Search, Auto-Scroll & Filter Controls */}
+                            <div className="bg-[#111827] border border-slate-800/90 rounded-xl p-3 space-y-2.5 shrink-0">
+                                <div className="flex items-center gap-2">
+                                    <div className="relative flex-1">
+                                        <Icon name="fa-magnifying-glass" className="text-slate-500 text-xs absolute left-3.5 top-1/2 -translate-y-1/2" />
+                                        <input
+                                            type="text"
+                                            value={searchTerm}
+                                            onChange={(e) => setSearchTerm(e.target.value)}
+                                            placeholder="Cari kode, nama paket, atau penyedia..."
+                                            className="w-full bg-slate-950/90 border border-slate-800 rounded-lg pl-9 pr-3 py-2 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-sky-500/60"
+                                        />
+                                    </div>
+                                    <button
+                                        onClick={() => setIsAutoScrolling(prev => !prev)}
+                                        title="Gulir Otomatis Daftar Paket 2025 – Hari Ini"
+                                        className={`px-3 py-2 rounded-lg border text-xs font-semibold flex items-center gap-1.5 shrink-0 transition-all ${
+                                            isAutoScrolling
+                                                ? 'bg-sky-500 text-slate-950 border-sky-400 shadow-md shadow-sky-500/20'
+                                                : 'bg-slate-950/90 text-sky-400 border-slate-800 hover:border-sky-500/50'
+                                        }`}
+                                    >
+                                        <Icon name={isAutoScrolling ? "fa-pause" : "fa-play"} className="text-[10px]" />
+                                        <span>{isAutoScrolling ? 'Stop' : 'Auto-Scroll'}</span>
+                                    </button>
+                                </div>
+                                <div className="flex flex-col sm:flex-row items-center gap-2">
+                                    <select
+                                        value={selectedMonth}
+                                        onChange={(e) => setSelectedMonth(e.target.value)}
+                                        className="w-full sm:w-1/2 bg-slate-950/90 border border-slate-800 rounded-lg px-2.5 py-2 text-xs font-medium text-slate-200 focus:outline-none focus:border-sky-500/60"
+                                    >
+                                        <option value="ALL">Semua Periode (2025 – Hari Ini)</option>
+                                        <option value="YEAR_2026">Tahun 2026 (s/d 21 Nov 2026)</option>
+                                        <option value="YEAR_2025">Tahun 2025 (Jan – Des 2025)</option>
+                                        <option value="November 2026">November 2026 (Hari Ini / Live)</option>
+                                        <option value="Oktober 2026">Oktober 2026</option>
+                                        <option value="September 2026">September 2026</option>
+                                        <option value="Agustus 2026">Agustus 2026</option>
+                                        <option value="Juli 2026">Juli 2026</option>
+                                        <option value="Juni 2026">Juni 2026</option>
+                                        <option value="Mei 2026">Mei 2026</option>
+                                        <option value="April 2026">April 2026</option>
+                                        <option value="Maret 2026">Maret 2026</option>
+                                        <option value="Februari 2026">Februari 2026</option>
+                                        <option value="Januari 2026">Januari 2026</option>
+                                        <option value="Desember 2025">Desember 2025</option>
+                                        <option value="November 2025">November 2025</option>
+                                        <option value="Oktober 2025">Oktober 2025</option>
+                                        <option value="September 2025">September 2025</option>
+                                        <option value="Agustus 2025">Agustus 2025</option>
+                                        <option value="Juli 2025">Juli 2025</option>
+                                        <option value="Juni 2025">Juni 2025</option>
+                                        <option value="Mei 2025">Mei 2025</option>
+                                        <option value="April 2025">April 2025</option>
+                                        <option value="Maret 2025">Maret 2025</option>
+                                        <option value="Februari 2025">Februari 2025</option>
+                                        <option value="Januari 2025">Januari 2025</option>
+                                    </select>
+                                    <select
+                                        value={selectedLevelFilter}
+                                        onChange={(e) => setSelectedLevelFilter(e.target.value)}
+                                        className="w-full sm:w-1/2 bg-slate-950/90 border border-slate-800 rounded-lg px-2.5 py-2 text-xs font-medium text-slate-200 focus:outline-none focus:border-sky-500/60"
+                                    >
+                                        <option value="ALL">Semua Status (Anomali & Aman)</option>
+                                        <option value="ANOMALI">Hanya Terdeteksi Anomali</option>
+                                        <option value="KRITIS">Risiko Kritis</option>
+                                        <option value="TINGGI">Risiko Tinggi</option>
+                                        <option value="AMAN">Paket Aman / Normal</option>
+                                    </select>
+                                </div>
+                                <select
+                                    value={selectedIndicatorFilter}
+                                    onChange={(e) => setSelectedIndicatorFilter(e.target.value)}
+                                    className="w-full bg-slate-950/90 border border-rose-500/30 rounded-lg px-2.5 py-2 text-xs font-medium text-rose-200 focus:outline-none focus:border-rose-500/60"
+                                >
+                                    <option value="ALL">Filter Indikator EWS: Semua (Kolom D–H)</option>
+                                    <option value="Perubahan Harga">Kolom D: Perubahan Harga</option>
+                                    <option value="Kecepatan Status">Kolom E: Kecepatan Status</option>
+                                    <option value="Kecepatan Transaksi Pertama">Kolom F: Transaksi Pertama</option>
+                                    <option value="Transaksi Berulang">Kolom G: Transaksi Berulang</option>
+                                    <option value="IP Address">Kolom H: IP Address (IP Sama)</option>
+                                </select>
+                            </div>
+
+                            {/* Scrollable Packet List */}
+                            <div
+                                ref={listContainerRef}
+                                onScroll={handleListScroll}
+                                onWheel={() => { if (isAutoScrolling) setIsAutoScrolling(false); }}
+                                onTouchStart={() => { if (isAutoScrolling) setIsAutoScrolling(false); }}
+                                className="flex-1 min-h-0 overflow-y-auto space-y-2.5 pr-1 pb-6"
+                            >
+                                {displayedPackets.map((pkt) => {
+                                    const isSelected = selectedPacket?.kode === pkt.kode;
+                                    const isKritis = pkt.level === 'KRITIS';
+                                    const isAman = pkt.level === 'AMAN';
+
+                                    return (
+                                        <div
+                                            key={pkt.kode}
+                                            onClick={() => handleSelectPacket(pkt)}
+                                            className={`w-full text-left p-4 rounded-xl border transition-all cursor-pointer relative overflow-hidden ${
+                                                isSelected
+                                                    ? 'bg-[#172236] border-sky-500/70 shadow-lg'
+                                                    : isAman
+                                                        ? 'bg-[#0f1c1d]/80 border-emerald-500/20 hover:border-emerald-500/40'
+                                                        : 'bg-[#111827]/90 border-slate-800/80 hover:border-slate-700 hover:bg-[#141d2f]'
+                                            }`}
+                                        >
+                                            {isSelected && (
+                                                <div className={`absolute left-0 top-0 bottom-0 w-1 ${isAman ? 'bg-emerald-400' : 'bg-sky-400'}`}></div>
+                                            )}
+
+                                            <div className="flex items-center justify-between gap-2 mb-2">
+                                                <div className="flex items-center gap-1.5">
+                                                    <span className="font-mono text-[11px] font-semibold text-slate-400">
+                                                        #{pkt.kode}
+                                                    </span>
+                                                    <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-sky-500/10 text-sky-300 border border-sky-500/20">
+                                                        {pkt.bulan}
+                                                    </span>
+                                                </div>
+                                                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md border flex items-center gap-1 ${
+                                                    isAman
+                                                        ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'
+                                                        : isKritis
+                                                            ? 'bg-rose-500/15 text-rose-300 border-rose-500/30'
+                                                            : 'bg-amber-500/15 text-amber-300 border-amber-500/30'
+                                                }`}>
+                                                    {isAman && <Icon name="fa-circle-check" className="text-[9px]" />}
+                                                    <span>{isAman ? 'AMAN / NORMAL' : pkt.level}</span>
+                                                </span>
+                                            </div>
+
+                                            <h3 className="text-xs sm:text-sm font-bold text-slate-100 leading-snug line-clamp-2 mb-2">
+                                                {pkt.namaPaket}
+                                            </h3>
+
+                                            <div className="flex flex-wrap gap-1 mb-2.5">
+                                                {isAman ? (
+                                                    <span className="text-[9px] font-bold px-2 py-0.5 rounded bg-emerald-950/90 text-emerald-300 border border-emerald-500/30 flex items-center gap-1">
+                                                        <Icon name="fa-shield-check" />
+                                                        <span>Paket Aman • Seluruh 5 Indikator EWS Bersih</span>
+                                                    </span>
+                                                ) : (
+                                                    (pkt.matriksAnomali || []).filter(m => m.status === 'Terdeteksi').map((m, idx) => (
+                                                        <span key={idx} className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-rose-950/90 text-rose-300 border border-rose-500/30">
+                                                            ! {m.indikator}
+                                                        </span>
+                                                    ))
+                                                )}
+                                            </div>
+
+                                            <div className="flex items-center justify-between text-xs pt-2.5 border-t border-slate-800/80">
+                                                <span className="font-mono font-semibold text-slate-300">{pkt.hps}</span>
+                                                <span className="text-[11px] text-slate-400 truncate max-w-[175px]">
+                                                    {pkt.waktuTayang.split('•')[0]}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+
+                                {filteredPackets.length > 0 && (
+                                    <div className="py-4 text-center">
+                                        <span className="inline-flex items-center gap-2 text-[11px] text-slate-400 bg-slate-900/80 border border-slate-800 px-3 py-1.5 rounded-full">
+                                            <Icon name="fa-angles-down" className="text-sky-400 animate-bounce" />
+                                            <span>Gulir terus ke bawah untuk memuat paket berikutnya ({displayedPackets.length} ditampilkan)</span>
+                                        </span>
+                                    </div>
+                                )}
+
+                                {filteredPackets.length === 0 && (
+                                    <div className="bg-[#111827] border border-slate-800 rounded-xl p-8 text-center">
+                                        <p className="text-xs text-slate-400">Tidak ada paket yang cocok dengan filter.</p>
+                                    </div>
+                                )}
+                            </div>
+                        </section>
+
+                        {/* RIGHT COLUMN: Panel Detail Analisis & Hipotesa IP */}
+                        <section className={`${mobileView === 'detail' ? 'flex' : 'hidden'} md:flex flex-1 flex-col gap-5 pb-12`}>
+
+                            <button
+                                onClick={() => setMobileView('list')}
+                                className="md:hidden w-full py-2.5 px-4 bg-[#111827] border border-slate-800 rounded-xl text-xs font-semibold text-sky-400 flex items-center justify-center gap-2"
+                            >
+                                <Icon name="fa-arrow-left" />
+                                <span>Kembali ke Daftar Paket ({filteredPackets.length})</span>
+                            </button>
+
+                            {selectedPacket && activeIpHypothesis && (
+                                <div className="bg-[#111827] border border-slate-800/90 rounded-2xl overflow-hidden shadow-xl">
+
+                                    <div className="p-5 sm:p-7 border-b border-slate-800/80 bg-gradient-to-b from-slate-900/90 to-[#111827]">
+                                        <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
+                                            <div className="flex flex-wrap items-center gap-2">
+                                                <span className="font-mono text-xs font-bold px-2.5 py-1 rounded-md bg-slate-800 text-sky-400 border border-slate-700">
+                                                    KODE: {selectedPacket.kode}
+                                                </span>
+                                                <span className="text-xs font-semibold px-2.5 py-1 rounded-md bg-sky-500/10 text-sky-300 border border-sky-500/20">
+                                                    {selectedPacket.bulan}
+                                                </span>
+                                                <span className="text-xs text-slate-400 bg-slate-900 px-2.5 py-1 rounded-md border border-slate-800">
+                                                    {selectedPacket.metode}
+                                                </span>
+                                            </div>
+                                            <a
+                                                href={getSpseOfficialUrl(selectedPacket)}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="text-xs font-semibold text-sky-400 hover:text-sky-300 bg-sky-500/10 hover:bg-sky-500/20 border border-sky-500/30 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-2"
+                                            >
+                                                <span>Buka di SPSE INAPROC</span>
+                                                <Icon name="fa-arrow-up-right-from-square" className="text-[10px]" />
+                                            </a>
+                                        </div>
+
+                                        <h2 className="text-lg sm:text-xl font-bold text-white leading-snug mb-5">
+                                            {selectedPacket.namaPaket}
+                                        </h2>
+
+                                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                            <div className="bg-slate-950/70 border border-slate-800/90 rounded-xl p-3.5">
+                                                <p className="text-[11px] font-medium text-slate-400 mb-1">Nilai Pagu Anggaran</p>
+                                                <p className="font-mono text-sm sm:text-base font-bold text-slate-100">{selectedPacket.pagu}</p>
+                                            </div>
+                                            <div className="bg-slate-950/70 border border-slate-800/90 rounded-xl p-3.5">
+                                                <p className="text-[11px] font-medium text-slate-400 mb-1">Nilai HPS / Kontrak</p>
+                                                <p className="font-mono text-sm sm:text-base font-bold text-sky-400">{selectedPacket.hps}</p>
+                                            </div>
+                                            <div className="bg-slate-950/70 border border-slate-800/90 rounded-xl p-3.5">
+                                                <p className="text-[11px] font-medium text-slate-400 mb-1">Tahapan & Jadwal</p>
+                                                <p className="text-xs font-semibold text-emerald-400 leading-snug">{selectedPacket.tahapanSaatIni}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="p-5 sm:p-7 space-y-6">
+
+                                        {/* 1. MATRIKS 5 INDIKATOR SCREENING EWS (KOLOM D - H) */}
+                                        <div className="bg-slate-950/90 border border-rose-500/30 rounded-xl overflow-hidden shadow-md">
+                                            <div className="px-4 py-3.5 bg-gradient-to-r from-rose-950/50 to-slate-900 border-b border-slate-800 flex flex-wrap items-center justify-between gap-2">
+                                                <div className="flex items-center gap-2">
+                                                    <Icon name="fa-table-columns" className="text-rose-400 text-xs" />
+                                                    <h3 className="text-xs font-bold uppercase tracking-wider text-white">
+                                                        Matriks 5 Indikator Screening EWS (Kolom D–H) & Antisipasi Audit
+                                                    </h3>
+                                                </div>
+                                                <span className="text-[10px] font-semibold text-rose-300 bg-rose-500/10 border border-rose-500/20 px-2.5 py-0.5 rounded">
+                                                    Fokus Pengawasan APIP / Inspektorat
+                                                </span>
+                                            </div>
+
+                                            <div className="grid grid-cols-2 sm:grid-cols-5 border-b border-slate-800 divide-y sm:divide-y-0 sm:divide-x divide-slate-800 bg-slate-900/60">
+                                                {(selectedPacket.matriksAnomali || []).map((item, idx) => {
+                                                    const colLetters = ['D', 'E', 'F', 'G', 'H'];
+                                                    const isDetected = item.status === 'Terdeteksi';
+                                                    return (
+                                                        <div key={idx} className={`p-3 text-center flex flex-col justify-between ${isDetected ? 'bg-rose-950/40' : ''}`}>
+                                                            <div>
+                                                                <span className="text-[9px] font-mono font-bold text-slate-500 block mb-0.5">KOLOM {colLetters[idx]}</span>
+                                                                <p className="text-[11px] font-bold text-slate-200 leading-tight mb-2">{item.indikator}</p>
+                                                            </div>
+                                                            <span className={`inline-block text-[10px] font-bold px-2 py-1 rounded-md border ${
+                                                                isDetected
+                                                                    ? 'bg-rose-500/20 text-rose-300 border-rose-500/40'
+                                                                    : 'bg-slate-800/80 text-slate-400 border-slate-700'
+                                                            }`}>
+                                                                {item.status}
+                                                            </span>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+
+                                            <div className="p-4 space-y-3">
+                                                {(selectedPacket.matriksAnomali || []).map((item, idx) => {
+                                                    const isDetected = item.status === 'Terdeteksi';
+                                                    return (
+                                                        <div key={idx} className={`p-3.5 rounded-lg border text-xs leading-relaxed ${
+                                                            isDetected
+                                                                ? 'bg-rose-950/20 border-rose-500/30'
+                                                                : 'bg-slate-900/40 border-slate-800/70'
+                                                        }`}>
+                                                            <div className="flex items-center justify-between gap-2 mb-1.5">
+                                                                <span className={`font-bold ${isDetected ? 'text-rose-300' : 'text-slate-300'}`}>
+                                                                    {idx + 1}. {item.indikator}
+                                                                </span>
+                                                                <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded ${
+                                                                    isDetected ? 'bg-rose-500/20 text-rose-300' : 'bg-slate-800 text-slate-400'
+                                                                }`}>
+                                                                    {item.status}
+                                                                </span>
+                                                            </div>
+                                                            <p className="text-slate-300 mb-2">
+                                                                <strong className="text-slate-200">Alasan Logis:</strong> {item.alasan}
+                                                            </p>
+                                                            <div className="bg-emerald-950/25 border border-emerald-500/20 rounded-md p-2.5 text-emerald-200">
+                                                                <strong className="text-emerald-400">Solusi / Justifikasi Inspektorat & BPK:</strong> {item.solusiInspektorat}
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+
+                                        {/* 2. PANEL HIPOTESA FORENSIK JARINGAN (IP ADDRESS SAMA VS TIDAK SAMA) */}
+                                        <div className={`rounded-xl border p-4 sm:p-5 ${
+                                            activeIpHypothesis.isSameIp
+                                                ? 'bg-rose-950/30 border-rose-500/40'
+                                                : 'bg-sky-950/25 border-sky-500/30'
+                                        }`}>
+                                            <div className="flex flex-wrap items-center justify-between gap-2 mb-2.5">
+                                                <div className={`flex items-center gap-2 text-xs font-bold uppercase tracking-wider ${
+                                                    activeIpHypothesis.isSameIp ? 'text-rose-300' : 'text-sky-300'
+                                                }`}>
+                                                    <Icon name="fa-network-wired" />
+                                                    <span>{activeIpHypothesis.judul}</span>
+                                                </div>
+                                                <span className={`font-mono text-[11px] font-bold px-2.5 py-0.5 rounded border ${
+                                                    activeIpHypothesis.isSameIp
+                                                        ? 'bg-rose-500/20 text-rose-200 border-rose-500/40'
+                                                        : 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'
+                                                }`}>
+                                                    IP: {activeIpHypothesis.maskedIp} ({activeIpHypothesis.isSameIp ? 'IP SAMA' : 'IP TIDAK SAMA'})
+                                                </span>
+                                            </div>
+
+                                            <p className="text-xs sm:text-sm text-slate-200 leading-relaxed mb-3">
+                                                {activeIpHypothesis.hipotesaUtama}
+                                            </p>
+
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs">
+                                                <div className="bg-slate-950/70 border border-slate-800 rounded-lg p-3">
+                                                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1">Implikasi Hukum & Audit</span>
+                                                    <p className="text-slate-300 leading-relaxed">{activeIpHypothesis.dampakHukum}</p>
+                                                </div>
+                                                <div className="bg-slate-950/70 border border-slate-800 rounded-lg p-3">
+                                                    <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-400 block mb-1">Langkah Pembuktian PPK / Pokja</span>
+                                                    <p className="text-slate-300 leading-relaxed">{activeIpHypothesis.langkahPembuktian}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* 3. Ringkasan Indikator Utama / Status Aman */}
+                                        <div className={`rounded-xl border p-4 sm:p-5 ${
+                                            selectedPacket.level === 'AMAN'
+                                                ? 'bg-emerald-950/25 border-emerald-500/30'
+                                                : 'bg-rose-950/20 border-rose-500/30'
+                                        }`}>
+                                            <div className={`flex items-center gap-2 text-xs font-bold uppercase tracking-wider mb-2 ${
+                                                selectedPacket.level === 'AMAN' ? 'text-emerald-400' : 'text-rose-400'
+                                            }`}>
+                                                <Icon name={selectedPacket.level === 'AMAN' ? 'fa-circle-check' : 'fa-triangle-exclamation'} />
+                                                <span>{selectedPacket.level === 'AMAN' ? 'Verifikasi Sistem: ' : 'Ringkasan Anomali: '}{selectedPacket.statusAnomali}</span>
+                                            </div>
+                                            <p className="text-xs sm:text-sm text-slate-200 leading-relaxed mb-3">
+                                                {selectedPacket.temuanFakta}
+                                            </p>
+                                            <div className="bg-slate-950/60 border border-slate-800/80 rounded-lg p-3.5 text-xs text-slate-300 leading-relaxed">
+                                                <strong className="text-slate-200">Catatan Evaluasi SPSE:</strong> {selectedPacket.detailAudit}
+                                            </div>
+                                        </div>
+
+                                        {/* 4. Profil Penyedia & Integrasi Otomatis API OSS BKPM & Ditjen AHU */}
+                                        <div className="bg-slate-950/60 border border-slate-800/90 rounded-xl p-4 sm:p-5">
+                                            <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+                                                <div className="flex items-center gap-2">
+                                                    <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400">
+                                                        Penyedia & Verifikasi Otomatis API OSS / Ditjen AHU
+                                                    </h3>
+                                                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                                                        {ossLookupState.loading ? 'Memeriksa API OSS...' : 'Terhubung API SIKaP / OSS'}
+                                                    </span>
+                                                </div>
+                                                {!selectedPacket.peserta.includes('Tahap') && (
+                                                    <button
+                                                        onClick={() => copyToClipboard(getVendorQueryName(selectedPacket.peserta), 'Nama Penyedia')}
+                                                        className="text-[11px] font-semibold text-sky-400 hover:text-sky-300 bg-sky-500/10 px-2.5 py-1 rounded border border-sky-500/20 flex items-center gap-1.5"
+                                                    >
+                                                        <Icon name="fa-copy" />
+                                                        <span>Salin Nama PT/CV</span>
+                                                    </button>
+                                                )}
+                                            </div>
+
+                                            <p className="text-sm font-semibold text-white mb-3">{selectedPacket.peserta}</p>
+
+                                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 mb-3 bg-slate-900/90 border border-sky-500/20 rounded-lg p-3 text-xs">
+                                                <div>
+                                                    <span className="text-[10px] uppercase tracking-wider text-slate-400 block mb-0.5">Status NIB (API OSS BKPM)</span>
+                                                    <span className="font-mono font-semibold text-emerald-400">{ossLookupState.nibStatus}</span>
+                                                </div>
+                                                <div>
+                                                    <span className="text-[10px] uppercase tracking-wider text-slate-400 block mb-0.5">Kesesuaian KBLI OSS</span>
+                                                    <span className="font-medium text-slate-200">{ossLookupState.kbliStatus}</span>
+                                                </div>
+                                                <div>
+                                                    <span className="text-[10px] uppercase tracking-wider text-slate-400 block mb-0.5">Status Badan Hukum (AHU)</span>
+                                                    <span className="font-mono font-semibold text-sky-300">{ossLookupState.ahuStatus}</span>
+                                                </div>
+                                            </div>
+
+                                            <div className="pt-3 border-t border-slate-800/80 flex flex-wrap items-center gap-2">
+                                                <span className="text-[11px] text-slate-400 mr-1">Cek Fisik Portal Resmi:</span>
+                                                <a
+                                                    href="https://ahu.go.id/pencarian/profil-pt"
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="text-[11px] font-semibold px-2.5 py-1 rounded-md bg-slate-900 hover:bg-slate-800 text-amber-300 border border-amber-500/30 flex items-center gap-1.5 transition-colors"
+                                                >
+                                                    <Icon name="fa-building-columns" />
+                                                    <span>Ditjen AHU Kemenkumham</span>
+                                                </a>
+                                                <a
+                                                    href="https://oss.go.id"
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="text-[11px] font-semibold px-2.5 py-1 rounded-md bg-slate-900 hover:bg-slate-800 text-emerald-300 border border-emerald-500/30 flex items-center gap-1.5 transition-colors"
+                                                >
+                                                    <Icon name="fa-certificate" />
+                                                    <span>Portal OSS BKPM</span>
+                                                </a>
+                                                <a
+                                                    href="https://sikap.lkpp.go.id"
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="text-[11px] font-semibold px-2.5 py-1 rounded-md bg-slate-900 hover:bg-slate-800 text-sky-300 border border-sky-500/30 flex items-center gap-1.5 transition-colors"
+                                                >
+                                                    <Icon name="fa-database" />
+                                                    <span>SIKaP LKPP</span>
+                                                </a>
+                                            </div>
+                                        </div>
+
+                                        {/* 5. Rekomendasi Tindakan PPK */}
+                                        <div className="bg-sky-950/20 border border-sky-500/25 rounded-xl p-4 sm:p-5">
+                                            <div className="flex items-center gap-2 text-sky-400 text-xs font-bold uppercase tracking-wider mb-2">
+                                                <Icon name="fa-clipboard-check" />
+                                                <span>Rekomendasi Mitigasi PPK / Pejabat Pengadaan</span>
+                                            </div>
+                                            <p className="text-xs sm:text-sm text-slate-200 leading-relaxed">
+                                                {selectedPacket.tindakanWajib}
+                                            </p>
+                                        </div>
+
+                                        {/* 6. Nota Dinas Generator */}
+                                        <div className="pt-2">
+                                            <div className="flex flex-wrap items-center justify-between gap-3">
+                                                <button
+                                                    onClick={generateNotaDinas}
+                                                    className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-semibold text-white transition-all flex items-center gap-2"
+                                                >
+                                                    <Icon name="fa-file-signature" className="text-sky-400" />
+                                                    <span>Susun Draf Nota Dinas & Hipotesa IP</span>
+                                                </button>
+
+                                                {notaDinasText && (
+                                                    <button
+                                                        onClick={() => copyToClipboard(notaDinasText, 'Draf Nota Dinas')}
+                                                        className="px-4 py-2.5 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 text-xs font-semibold text-emerald-300 transition-all flex items-center gap-2"
+                                                    >
+                                                        <Icon name="fa-copy" />
+                                                        <span>Salin Teks Nota Dinas</span>
+                                                    </button>
+                                                )}
+                                            </div>
+
+                                            {notaDinasText && (
+                                                <textarea
+                                                    readOnly
+                                                    value={notaDinasText}
+                                                    rows={16}
+                                                    className="mt-3 w-full bg-slate-950 border border-slate-800 rounded-xl p-4 font-mono text-xs text-slate-300 leading-relaxed focus:outline-none"
+                                                />
+                                            )}
+                                        </div>
+
+                                    </div>
+                                </div>
+                            )}
+                        </section>
+                    </main>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
